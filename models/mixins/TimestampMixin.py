@@ -1,5 +1,5 @@
 from datetime import datetime
-from app import db
+from models.__init__ import db
 from abc import ABC
 
 

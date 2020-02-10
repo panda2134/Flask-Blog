@@ -1,4 +1,4 @@
-from app import db
+from models.__init__ import db
 from abc import ABC
 from sqlalchemy.ext.declarative import declared_attr
 

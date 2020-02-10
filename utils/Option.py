@@ -2,8 +2,8 @@ from models.__init__ import db
 from models.Option import Option
 from typeguard import check_type
 
-from controllers.option_schemas import site
-from controllers.option_schemas.config import config
+from utils.option_schemas.site import site
+from utils.option_schemas.config import config
 
 schemas = {
     **site,

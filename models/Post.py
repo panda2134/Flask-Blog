@@ -1,4 +1,4 @@
-from app import db
+from models.__init__ import db
 from models.mixins import CommentMixin, TimestampMixin
 from models.TagsTable import tags as tags_table
 from models.Tag import Tag

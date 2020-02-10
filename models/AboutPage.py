@@ -1,4 +1,4 @@
-from app import db
+from models.__init__ import db
 from .mixins import CommentMixin
 
 

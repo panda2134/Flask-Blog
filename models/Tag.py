@@ -1,4 +1,4 @@
-from app import db
+from models.__init__ import db
 
 
 class Tag(db.Model):
