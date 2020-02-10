@@ -1,6 +1,6 @@
 from typing import List
 from collections import namedtuple
-from .schema import schema_factory
+from .schema import get_schema
 
 FriendLink = namedtuple('FriendLink', ['name', 'link'])
 raw_schema = {
@@ -11,6 +11,4 @@ raw_schema = {
     'friends': List[FriendLink]
 }
 
-
-class Site(schema_factory('site', raw_schema)):
-    pass
+site = get_schema('site', raw_schema)

@@ -1,18 +1,19 @@
-from app import db
+from models.__init__ import db
 from models.Option import Option
 from typeguard import check_type
 
-from .option_schemas.site import Site
-from .option_schemas.config import Config
+from controllers.option_schemas import site
+from controllers.option_schemas.config import config
 
 schemas = {
-    **Site.get_schema(),
-    **Config.get_schema()
+    **site,
+    **config
 }
 
 
 class NotInSchemaError(KeyError):
     def __init__(self, k):
+        super().__init__()
         self.key = k
 
     def __str__(self):
@@ -32,4 +33,7 @@ def set_option(k, v):
 def get_option(k):
     if k not in schemas.keys():
         raise NotInSchemaError(k)
-    return Option.query.filter_by(key=k).first().value
+    ret = Option.query.filter_by(key=k).first()
+    if ret is None:
+        raise ValueError('Option "' + k + '" has not been initialized')
+    return ret.value
