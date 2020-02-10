@@ -1,12 +1,17 @@
-from models.__init__ import db
-from models.mixins import CommentMixin, TimestampMixin
-from models.TagsTable import tags as tags_table
+from models import db
 from models.Tag import Tag
+from models.TagsTable import tags_table
+
+from models.mixins.CommentMixin import CommentMixin
+from models.mixins.TimestampMixin import TimestampMixin
 
 
-class Post(db.Model, CommentMixin, TimestampMixin):
+class Post(CommentMixin, TimestampMixin, db.Model):
+    __tablename__ = 'post'
+
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text, nullable=False)
     text = db.Column(db.Text, nullable=False)
-    tags = db.relationship(lambda: Tag, secondary=tags_table, lazy='subquery',
+    name = db.Column(db.Text, nullable=False)
+
+    tags = db.relationship(Tag, secondary=tags_table, lazy='subquery',
                            backref=db.backref('posts', lazy=True))

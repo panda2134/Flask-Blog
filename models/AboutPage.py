@@ -1,6 +1,7 @@
-from models.__init__ import db
-from .mixins import CommentMixin
+from models import db
+from models.mixins.CommentMixin import CommentMixin
 
 
-class AboutPage(db.Model, CommentMixin):
+class AboutPage(CommentMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text, nullable=False)

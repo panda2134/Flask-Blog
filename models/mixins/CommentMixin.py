@@ -1,9 +1,10 @@
-from models.__init__ import db
-from abc import ABC
 from sqlalchemy.ext.declarative import declared_attr
 
+from models import db
+from models.Comment import Comment
 
-class CommentMixin(ABC):
+
+class CommentMixin:
     @declared_attr
     def comments(self):
-        return db.relationship('Comment', backref='page', lazy=True)
+        db.relationship(Comment, backref='page', lazy=True)

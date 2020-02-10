@@ -1,4 +1,6 @@
-from models.__init__ import db
+from sqlalchemy.orm.exc import NoResultFound
+
+from models import db
 from models.Option import Option
 from typeguard import check_type
 
@@ -24,16 +26,21 @@ class NotInSchemaError(KeyError):
 
 
 def set_option(k, v):
-    if k not in schemas.keys():
+    if k not in schemas:
         raise NotInSchemaError(k)
     check_type('v', v, schemas[k])
-    db.add(Option(key=k, value=v))
+    try:
+        row = Option.query.filter_by(key=k).one()
+        row.value = v
+    except NoResultFound:
+        db.session.add(Option(key=k, value=v))
 
 
 def get_option(k):
-    if k not in schemas.keys():
+    if k not in schemas:
         raise NotInSchemaError(k)
-    ret = Option.query.filter_by(key=k).first()
-    if ret is None:
+    try:
+        row = Option.query.filter_by(key=k).one()
+        return row.value
+    except NoResultFound:
         raise ValueError('Option "' + k + '" has not been initialized')
-    return ret.value

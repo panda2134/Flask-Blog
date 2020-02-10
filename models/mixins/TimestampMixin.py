@@ -1,8 +1,6 @@
 from datetime import datetime
-from models.__init__ import db
-from abc import ABC
+from models import db
 
 
-class TimestampMixin(ABC):
-    __abstract__ = True
+class TimestampMixin:
     updated = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
