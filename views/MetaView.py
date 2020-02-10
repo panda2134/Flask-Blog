@@ -27,9 +27,9 @@ class BlogMeta:
 
     @staticmethod
     def from_dict(d: dict):
-        friend_links = [FriendLink(name=x.name, link=x.link) for x in d['friends']]
+        friend_links = [FriendLink(name=x['name'], link=x['link']) for x in d['friends']]
         return BlogMeta(site_title_=d['site_title'], author_=d['author'], contact_=d['contact'],
-                    friends_=friend_links, description_=d['description'])
+                        friends_=friend_links, description_=d['description'])
 
     def to_dict(self) -> dict:
         ret = deepcopy(self.__dict__)

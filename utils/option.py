@@ -20,9 +20,18 @@ class NotInSchemaError(KeyError):
 
     def __str__(self):
         if isinstance(self.key, str):
-            return 'Key "' + self.key + '" not defined in schema'
+            return 'Key "' + self.key + '" is not defined in schema'
         else:
             return 'Key must be a string'
+
+
+class NotInitializedError(KeyError):
+    def __init__(self, k):
+        super().__init__()
+        self.key = k
+
+    def __str__(self):
+        return 'Key "' + self.key + '" has not been initialized'
 
 
 def set_option(k, v):
@@ -43,4 +52,4 @@ def get_option(k):
         row = Option.query.filter_by(key=k).one()
         return row.value
     except NoResultFound:
-        raise ValueError('Option "' + k + '" has not been initialized')
+        raise NotInitializedError(k)

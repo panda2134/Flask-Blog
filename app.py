@@ -1,7 +1,6 @@
 from connexion import FlaskApp
 from connexion.resolver import MethodViewResolver
 from flask_cors import CORS
-import views
 import models
 
 
@@ -12,8 +11,9 @@ def create_app():
 
     app = con.app
     app.config.from_pyfile('config.py')
-    models.init_app(app)
     CORS(app, resources='/api/*', supports_credentials=True)
+    with app.app_context():
+        models.init_models(app)
 
     return app
 

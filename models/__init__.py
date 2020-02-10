@@ -1,19 +1,13 @@
 from flask_sqlalchemy import SQLAlchemy
 
-
 db = SQLAlchemy()
 
 
-def init_app(app):
+def init_models(app):
+    from .AboutPage import AboutPage
+    from .Comment import Comment
+    from .Option import Option
+    from .Post import Post
     db.init_app(app)
-
-
-def create_all():
-    from models.AboutPage import AboutPage
-    from models.Category import Category
-    from models.Comment import Comment
-    from models.Option import Option
-    #from models.Tag import Tag
-    from models.Post import Post
-
     db.create_all()
+    db.session.commit()
