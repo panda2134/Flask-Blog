@@ -6,6 +6,7 @@ db = SQLAlchemy()
 def init_models(app):
     from .AboutPage import AboutPage
     from .Comment import Comment
+    from .CommentToggle import CommentToggle
     from .Option import Option
     from .Post import Post
     db.init_app(app)

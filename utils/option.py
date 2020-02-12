@@ -1,17 +1,11 @@
+from typing import Any
+
 from sqlalchemy.orm.exc import NoResultFound
 
 from models import db
 from models.Option import Option
+from utils.option_schemas.schema import SchemaMeta, OptionKey
 from typeguard import check_type
-
-from utils.option_schemas.site import site
-from utils.option_schemas.config import config
-
-schemas = {
-    **site,
-    **config
-}
-
 
 class NotInSchemaError(KeyError):
     def __init__(self, k):
@@ -20,7 +14,7 @@ class NotInSchemaError(KeyError):
 
     def __str__(self):
         if isinstance(self.key, str):
-            return 'Key "' + self.key + '" is not defined in schema'
+            return 'Key "' + self.key + '" is not defined in schema, maybe you forgot to set metaclass=SchemeMeta?'
         else:
             return 'Key must be a string'
 
@@ -34,22 +28,31 @@ class NotInitializedError(KeyError):
         return 'Key "' + self.key + '" has not been initialized'
 
 
-def set_option(k, v):
-    if k not in schemas:
+def set_option(k: OptionKey, v: Any):
+    if not isinstance(k, OptionKey):
+        raise TypeError('type OptionKey is expected')
+
+    check_type('v', v, k.type)
+    if k.qualified is None:
         raise NotInSchemaError(k)
-    check_type('v', v, schemas[k])
     try:
-        row = Option.query.filter_by(key=k).one()
+        row = Option.query.filter_by(key=k.qualified).one()
         row.value = v
     except NoResultFound:
-        db.session.add(Option(key=k, value=v))
+        db.session.add(Option(key=k.qualified, value=v))
 
 
-def get_option(k):
-    if k not in schemas:
+def get_option(k: OptionKey) -> Any:
+    if not isinstance(k, OptionKey):
+        raise TypeError('type OptionKey is expected')
+
+    if k.qualified is None:
         raise NotInSchemaError(k)
     try:
-        row = Option.query.filter_by(key=k).one()
+        row = Option.query.filter_by(key=k.qualified).one()
         return row.value
     except NoResultFound:
-        raise NotInitializedError(k)
+        if k.default is not None:
+            return k.default
+        else:
+            raise NotInitializedError(k.qualified)

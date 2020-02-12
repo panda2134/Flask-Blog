@@ -1,9 +1,8 @@
-from .schema import get_schema
+from .schema import SchemaMeta, OptionKey
 
-raw_schema = {
-    'username': str,
-    'passwordHash': str,
-    'captcha': bool
-}
 
-config = get_schema('config', raw_schema)
+class Config(metaclass=SchemaMeta):
+    username = OptionKey(str)
+    passwordHash = OptionKey(str)
+    captcha = OptionKey(bool)
+    excerptLength = OptionKey(int)

@@ -1,7 +1,12 @@
+from logging import getLogger, DEBUG
+
 from connexion import FlaskApp
 from connexion.resolver import MethodViewResolver
 from flask_cors import CORS
+
 import models
+
+log = getLogger('app')
 
 
 def create_app():

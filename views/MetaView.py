@@ -1,20 +1,33 @@
+import logging
 from typing import List
 from copy import deepcopy
 
+from flask import request
 from flask.views import MethodView
 
+from models import db
 from utils import option
-from utils.option_schemas.site import FriendLink
+from utils.api_jsonify import api_jsonify
+from utils.option_schemas.site import FriendLink, Site
+
+
+log = logging.getLogger('app')
 
 
 class MetaView(MethodView):
     @staticmethod
     def get():
-        pass
+        return api_jsonify(payload=BlogMeta.load_from_options().to_dict())
 
     @staticmethod
     def put():
-        pass
+        meta_dict = BlogMeta.load_from_options().to_dict()
+        meta_dict.update(request.json)
+        log.debug(meta_dict)
+        print(meta_dict)
+        BlogMeta.from_dict(meta_dict).write_to_options()
+        db.session.commit()
+        return api_jsonify()
 
 
 class BlogMeta:
@@ -33,20 +46,19 @@ class BlogMeta:
 
     def to_dict(self) -> dict:
         ret = deepcopy(self.__dict__)
-        print(id(ret), id(self.__dict__))
         ret['friends'] = [{'name': x.name, 'link': x.link}
                           for x in ret['friends']]
         return ret
 
     @staticmethod
-    def read_from_options(self):
-        return BlogMeta(site_title_=option.get_option('site.title'), author_=option.get_option('site.author'),
-                        contact_=option.get_option('site.contact'), friends_=option.get_option('site.friends'),
-                        description_=option.get_option('site.description'))
+    def load_from_options():
+        return BlogMeta(site_title_=option.get_option(Site.title), author_=option.get_option(Site.author),
+                        contact_=option.get_option(Site.contact), friends_=option.get_option(Site.friends),
+                        description_=option.get_option(Site.description))
 
     def write_to_options(self):
-        option.set_option('site.title', self.site_title)
-        option.set_option('site.author', self.author)
-        option.set_option('site.contact', self.contact)
-        option.set_option('site.friends', self.friends)
-        option.set_option('site.description', self.description)
+        option.set_option(Site.title, self.site_title)
+        option.set_option(Site.author, self.author)
+        option.set_option(Site.contact, self.contact)
+        option.set_option(Site.friends, self.friends)
+        option.set_option(Site.description, self.description)

@@ -1,14 +1,13 @@
 from typing import List
 from collections import namedtuple
-from .schema import get_schema
+from .schema import SchemaMeta, OptionKey
 
 FriendLink = namedtuple('FriendLink', ['name', 'link'])
-raw_schema = {
-    'title': str,
-    'author': str,
-    'contact': dict,
-    'description': str,
-    'friends': List[FriendLink]
-}
 
-site = get_schema('site', raw_schema)
+
+class Site(metaclass=SchemaMeta):
+    title = OptionKey(str)
+    author = OptionKey(str)
+    contact = OptionKey(dict)
+    description = OptionKey(str)
+    friends = OptionKey(List[FriendLink])
