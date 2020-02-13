@@ -1,4 +1,5 @@
-from flask import request, abort
+from functools import wraps
+
 from flask.views import MethodView
 
 from utils.auth import jwt_encode

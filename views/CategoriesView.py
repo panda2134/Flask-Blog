@@ -9,6 +9,7 @@ from utils.api_jsonify import api_jsonify
 class CategoriesView(MethodView):
     @staticmethod
     def get(category: str):
+        model_category = None
         try:
             model_category = Category.query.filter_by(name=category).one()
         except NoResultFound:

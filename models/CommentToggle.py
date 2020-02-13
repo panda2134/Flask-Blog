@@ -1,18 +1,25 @@
+from typing import Optional
+from flask import abort
+
 from models import db
 
 
 class CommentToggle(db.Model):
-    loc = db.Column(db.Text, primary_key=True, unique=True)
-    state = db.Column(db.Boolean)
+    id = db.Column(db.Integer, primary_key=True)
+    loc = db.Column(db.String(2048))
+    state = db.Column(db.Boolean, default=False)
 
 
-def get_state(loc: str) -> bool:
-    state = CommentToggle.query.filter_by(loc=loc).one_or_none()
-    if state:
-        return True
-    else:   # state == False or state is None
-        return False
+def get_state(loc: str) -> Optional[bool]:
+    toggle: CommentToggle = CommentToggle.query.filter_by(loc=loc).one_or_none()
+    if toggle is not None:
+        return toggle.state
 
 
 def set_state(loc: str, state: bool):
-    db.session.add(CommentToggle(loc=loc, state=state))
+    toggle: CommentToggle = CommentToggle.query.filter_by(loc=loc).one_or_none()
+    if toggle is None:
+        toggle = CommentToggle(loc=loc)
+    toggle.state = state
+    db.session.add(toggle)
+

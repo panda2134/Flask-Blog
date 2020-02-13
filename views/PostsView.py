@@ -17,7 +17,9 @@ class PostsView(MethodView):
         post: Post = Post.query.filter_by(id=idx).one_or_none()
         if post is None:
             abort(404)
-        return api_jsonify(post.to_dict().update({'comment_loc': post.comment_loc()}))
+        ret = post.to_dict()
+        ret.update({'comment_loc': post.comment_loc()})
+        return api_jsonify(ret)
 
     @staticmethod
     def post():
@@ -43,7 +45,7 @@ class PostsView(MethodView):
         rows = (Post.query
                 .filter(Post.name.contains(query_str) | Post.text.contains(query_str))
                 .order_by(Post.id.desc()).paginate().items)
-        post_list = [(str(x.id), x.to_dict()) for x in rows]
+        post_list = [(str(x.id), x.to_excerpt_dict()) for x in rows]
         post_list.sort(key=lambda x: int(x[0]))
         post_dict = {}
         for x in post_list:

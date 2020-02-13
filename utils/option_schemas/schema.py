@@ -3,8 +3,8 @@ from typeguard import check_type
 
 class OptionKey:
     def __init__(self, type_, default_=None):
-        if default_ is not None and not check_type('default_', default_, type_):
-            raise TypeError(default_, type_)
+        if default_ is not None:
+            check_type('default_', default_, type_)
         self.type = type_
         self.qualified = ''
         self.default = default_

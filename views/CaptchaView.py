@@ -48,8 +48,8 @@ def check_captcha(payload: dict) -> bool:
     if payload is None:
         return False
     try:
-        jwt = jwt_decode(payload['answer_enc'], is_user=False)
-    except InvalidTokenError as e:
+        jwt = jwt_decode(payload['answer_enc'])
+    except InvalidTokenError:
         return False
     return jwt['data']['answer'].lower() == payload['answer'].lower()
 
@@ -59,7 +59,7 @@ def captcha_protected(func):
     def wrapped_func(*args, **kwargs):
         if get_option(Config.captcha) and\
                 not check_captcha(request.json.get('captcha')):
-            abort(401, 'bad captcha')
+            abort(403, 'bad captcha')
         return func(*args, **kwargs)
-
     return wrapped_func
+

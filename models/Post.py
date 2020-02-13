@@ -1,7 +1,8 @@
 from copy import deepcopy
 from datetime import datetime
-from pprint import pprint
 
+from utils import option
+from utils.option_schemas.config import Config
 from sqlalchemy.orm.exc import NoResultFound
 
 from models import db
@@ -39,7 +40,7 @@ class Post(CommentMixin, TimestampMixin, db.Model):
                            back_populates='posts')
 
     def comment_loc(self) -> str:
-        return '/'.join(['posts', str(self.id)])
+        return '.'.join(['posts', str(self.id)])
 
     def update_from_dict(self, modify):
         json_dict = self.to_dict()
@@ -59,6 +60,15 @@ class Post(CommentMixin, TimestampMixin, db.Model):
             'tags': [x.name for x in self.tags],
             'updated': rfc3339(self.updated),
             'text': self.text
+        }
+
+    def to_excerpt_dict(self):
+        return {
+            'name': self.name,
+            'category': self.category.name,
+            'tags': [x.name for x in self.tags],
+            'updated': rfc3339(self.updated),
+            'excerpt': self.text[:option.get_option(Config.excerptLength)]
         }
 
     @staticmethod

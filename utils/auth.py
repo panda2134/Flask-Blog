@@ -38,11 +38,12 @@ def jwt_encode(username: str = None, interval: timedelta = timedelta(days=1), da
     return jwt.encode(payload, SECRET)
 
 
-def jwt_decode(token, is_user: bool = True):
+def jwt_decode(token, **kwargs):
+    return jwt.decode(token, key=SECRET, **kwargs)
+
+
+def jwt_auth(token):
     try:
-        if is_user:
-            return jwt.decode(token, SECRET, audience=get_option(Config.username))
-        else:
-            return jwt.decode(token, SECRET)
+        return jwt_decode(token, audience=get_option(Config.username))
     except InvalidTokenError as e:
         raise Unauthorized from e

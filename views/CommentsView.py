@@ -2,6 +2,7 @@ from functools import wraps
 
 from flask import abort, request
 from flask.views import MethodView
+from urllib.parse import unquote
 from sqlalchemy.orm.exc import NoResultFound
 
 from models import db
@@ -10,19 +11,20 @@ from models import CommentToggle
 from utils.api_jsonify import api_jsonify
 from views.CaptchaView import captcha_protected
 
-VALID_URI_REGEXP = [
-    'posts/[0-9]+',
-    'about'
+VALID_loc_REGEXP = [
+    r'posts\.[0-9]+',
+    r'about'
 ]
 
 
-def validate_uri(func):
+def validate_and_decode_loc(func):
     from re import fullmatch
     @wraps(func)
-    def wrapped_func(uri, *args, **kwargs):
-        if not any([(fullmatch(pattern, uri) is not None) for pattern in VALID_URI_REGEXP]):
+    def wrapped_func(loc, *args, **kwargs):
+        unquoted = unquote(loc)
+        if not any([(fullmatch(pattern, unquoted) is not None) for pattern in VALID_loc_REGEXP]):
             abort(400, 'Requested location is invalid for comments')
-        return func(uri, *args, **kwargs)
+        return func(unquoted, *args, **kwargs)
 
     return wrapped_func
 
@@ -32,50 +34,70 @@ class CommentsView(MethodView):
     def all_comments():
         return api_jsonify({
             'comments': {
-                'list': [x.to_dict() for x in Comment.query.all().order_by(Comment.id.desc()).paginate().items]
+                'list': [x.to_dict() for x in Comment.query.order_by(Comment.id.desc()).paginate().items]
             }
         })
 
     @staticmethod
-    @validate_uri
-    def get_comments_in_uri(uri):
+    @validate_and_decode_loc
+    def get_comments_in_loc(loc):
+        state = CommentToggle.get_state(loc)
+        if state is None:
+            abort(404)
         return api_jsonify({
             'comments': {
-                'enabled': CommentToggle.get_state(uri),
-                'list': [x.to_dict() for x in Comment.query.filter_by(loc=uri)]
+                'enabled': state,
+                'list': [x.to_dict() for x in Comment.query.filter_by(loc=loc)]
             }
         })
 
     @staticmethod
-    @validate_uri
+    @validate_and_decode_loc
     @captcha_protected
-    def post_comment_in_uri(uri):
+    def post_comment_in_loc(loc):
+        state = CommentToggle.get_state(loc)
+        if state is None:
+            abort(404)
+        elif not state:
+            abort(403, 'comments are disabled')
         new_comment = Comment(username=request.json['username'],
                               email=request.json.get('email', ''),
                               text=request.json['text'],
-                              loc=uri)
+                              loc=loc)
         db.session.add(new_comment)
         # TODO: Akismet
         db.session.commit()
         return api_jsonify(new_comment.to_dict())
 
     @staticmethod
-    @validate_uri
-    def toggle_comments_in_uri(uri):
-        CommentToggle.set_state(uri, request.json.get('enabled', False))
+    @validate_and_decode_loc
+    def toggle_comments_in_loc(loc):
+        CommentToggle.set_state(loc, request.json.get('enabled', False))
         db.session.commit()
         return api_jsonify()
 
     @staticmethod
-    @validate_uri
-    def get_comment_by_id(uri, comment_id):
+    @validate_and_decode_loc
+    def get_comment_by_id(loc, comment_id):
         return api_jsonify(payload=Comment.query.filter_by(id=comment_id).first_or_404().to_dict())
 
     @staticmethod
-    @validate_uri
-    def remove_comment_by_id(uri, comment_id):
+    @validate_and_decode_loc
+    def remove_comment_by_id(loc, comment_id):
         try:
-            Comment.query.filter_by(id=comment_id).all().delete()
+            db.session.delete(Comment.query.filter_by(id=comment_id).one())
+            db.session.commit()
+            return api_jsonify()
+        except NoResultFound:
+            abort(404)
+
+    @staticmethod
+    @validate_and_decode_loc
+    def set_spam(loc, comment_id):
+        try:
+            comment: Comment= Comment.query.filter_by(id=comment_id).one()
+            comment.is_spam = request.json['isSpam']
+            db.session.commit()
             return api_jsonify()
         except NoResultFound:
             abort(404)
